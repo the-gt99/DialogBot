@@ -16,7 +16,6 @@ $username = "u148682720_test";
 $password = "egtXOIZTaE1y";
 $db = "u148682720_test";
 $connection = new mysqli($host, $username, $password, $db);
-$trello = new trello_api($apitoken,"https://api.trello.com",$apikey);
 
 function generate_report($connection,$trello) {
 $tokenAcc = 'a23cfa3460c6ea707a096c2967195683aa4415755a3157e65367a4a34f13e1225f85daa7adabfbc36b190';    
@@ -41,25 +40,34 @@ if($result[0][date]>$lastMessageDate){
     
     for($i=0;$i<=200;$i++){
 
-        if($result[$i][date]>$lastMessageDate and strripos($result[$i][body],'шибка')>0) {
-            
-        echo($i);       
+        if($result[$i][date]>$lastMessageDate and strripos($result[$i][body],'id468593975')>0) {
+
             $id = $result[$i][from_id];
-            
-             $request = $connection->query("SELECT user_rating FROM users WHERE user_id = $id");
-             $own = $request->fetch_row();
-             $rating = $own[0];
-             
-             $request = $connection->query("UPDATE users SET user_rating = '$rating+1' WHERE user_id = '$id'");
-             
-             //$reports->addParam('general', $result[$i][id], $id);
-            
-            $card_name = "Report date:".gmdate('d.m.y H:i:s',time()+10800);
-            $desc = $result[$i][body];
-            
-            $url = 'https://api.trello.com/1/cards';
-            $params = "key=$apikey&token=$apitoken&name=$card_name&idList=$list_id&labels=red&desc=$desc";
-            POST($url,$params);
+            $request = $connection->query("SELECT user_rating FROM users WHERE user_id = $id");
+            $own = $request->fetch_row();
+            $rating = $own[0];
+            $rating = $rating++;
+            $request = $connection->query("UPDATE users SET user_rating = '$rating' WHERE user_id = '$id'");
+                
+            if(strripos($result[$i][body],'лохой')>0){
+                $card_name = "Report date:".gmdate('H:i:s d.m.y',time()+10800);
+                $desc = substr($result[$i][body], 18);
+                
+                $url = 'https://api.trello.com/1/cards';
+                $params = "key=$apikey&token=$apitoken&name=$card_name&idList=$list_id&labels=red&desc=$desc";
+                $result = POST($url,$params);
+                
+                $CardId = $result['id'];
+                vkAttachments($result);
+                $urlPhotoReport = 'http://wbloger.com/uploads/screenshot/screen-2015-01-16-58-000.png';
+                
+                
+                $url = "https://api.trello.com/1/cards/$CardId/attachments";
+                $params = "key=$apikey&token=$apitoken&name=Photo&url=$urlPhotoReport";
+                $result = POST($url,$params);
+            }
+        echo($CardId.'  gg');
+        https://api.trello.com/1/cards/$CardId/attachments?=
         }
     }
 }
@@ -67,5 +75,11 @@ if($result[0][date]>$lastMessageDate){
 $lastMessageDate = $result[0][date];
 $request = $connection->query("UPDATE last_date SET last_message_date = '$lastMessageDate'");
 }
+
+function vkAttachments($result){
+    
+}
+
+
 echo(generate_report($connection,$trello));
 ?>
